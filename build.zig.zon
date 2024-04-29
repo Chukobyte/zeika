@@ -1,0 +1,10 @@
+.{
+    .name = "zeika",
+    .version = "0.0.1",
+    .paths = .{
+        "src",
+        "deps",
+        "build.zig",
+        "build.zig.zon",
+    },
+}
