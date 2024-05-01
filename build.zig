@@ -34,17 +34,17 @@ pub fn build(b: *std.Build) !void {
 
     const create_demo: bool = b.option(bool, "create_demo", "Will create a demo executable") orelse false;
 
+    const exe: *std.Build.Step.Compile = b.addExecutable(.{
+        .name = "main",
+        .root_source_file = .{ .path = "src/demo.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+
     // Dependencies
     const seika_lib: *std.Build.Step.Compile = try add_seika(b, target, optimize);
 
     if (create_demo) {
-        const exe: *std.Build.Step.Compile = b.addExecutable(.{
-            .name = "main",
-            .root_source_file = .{ .path = "src/demo.zig" },
-            .target = target,
-            .optimize = optimize,
-        });
-
         exe.linkLibC();
         exe.linkLibrary(seika_lib);
 
