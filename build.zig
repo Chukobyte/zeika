@@ -32,19 +32,19 @@ pub fn build(b: *std.Build) !void {
     const target: std.Build.ResolvedTarget = b.standardTargetOptions(.{});
     const optimize: std.builtin.OptimizeMode = b.standardOptimizeOption(.{});
 
-    const create_example: bool = b.option(bool, "create_example", "Will create an example executable") orelse false;
-
-    const exe: *std.Build.Step.Compile = b.addExecutable(.{
-        .name = "main",
-        .root_source_file = .{ .path = "src/main.zig" },
-        .target = target,
-        .optimize = optimize,
-    });
+    const create_demo: bool = b.option(bool, "create_demo", "Will create a demo executable") orelse false;
 
     // Dependencies
     const seika_lib: *std.Build.Step.Compile = try add_seika(b, target, optimize);
 
-    if (create_example) {
+    if (create_demo) {
+        const exe: *std.Build.Step.Compile = b.addExecutable(.{
+            .name = "main",
+            .root_source_file = .{ .path = "src/demo.zig" },
+            .target = target,
+            .optimize = optimize,
+        });
+
         exe.linkLibC();
         exe.linkLibrary(seika_lib);
 

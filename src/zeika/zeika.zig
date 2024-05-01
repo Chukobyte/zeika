@@ -1,7 +1,11 @@
 const std = @import("std");
 
+const math = @import("math.zig");
+
 const seika = @cImport({
     @cInclude("seika/seika.h");
+    @cInclude("seika/rendering/texture.h");
+    @cInclude("seika/rendering/renderer.h");
     @cInclude("seika/input/input.h");
 });
 
@@ -24,10 +28,52 @@ pub inline fn is_running() bool {
     return seika.ska_is_running();
 }
 
-// Window
-pub inline fn window_render() void {
-    seika.ska_window_render();
-}
+// Rendering
+pub const Texture = struct {
+    internal_texture: *seika.SkaTexture = undefined,
+
+    pub fn init_solid_colored_texture(width: i32, height: i32, color_value: u32) Texture {
+        const texture = seika.ska_texture_create_solid_colored_texture(width, height, color_value);
+        return @This(){
+            .internal_texture = texture,
+        };
+    }
+
+    pub fn deinit_texture(texture: *Texture) void {
+        seika.ska_texture_delete(texture.internal_texture);
+    }
+};
+
+pub const Renderer = struct {
+    pub fn queue_draw_sprite(texture: *const Texture, source: *const math.Rect2, size: *const math.Vec2, color: *const math.Color, flip_h: bool, flip_v: bool, transform: *const math.Transform2D, z_index: i32) void {
+        const ska_transform = seika.SkaTransform2D{
+            .position = seika.SkaVector2{ .x = transform.position.x, .y = transform.position.y },
+            .scale = seika.SkaVector2{ .x = transform.scale.x, .y = transform.scale.y },
+            .rotation = transform.rotation,
+        };
+        const r: f32 = @floatFromInt(color.r);
+        const g: f32 = @floatFromInt(color.g);
+        const b: f32 = @floatFromInt(color.b);
+        const a: f32 = @floatFromInt(color.a);
+        seika.ska_renderer_queue_sprite_draw(
+            texture.internal_texture,
+            seika.SkaRect2{ .x = source.x, .y = source.y, .w = source.w, .h = source.h },
+            seika.SkaSize2D{ .w = size.x, .h = size.y },
+            seika.SkaColor{ .r = 255.0 / r, .g = 255.0 / g, .b = 255.0 / b, .a = 255.0 / a },
+            flip_h,
+            flip_v,
+            &ska_transform,
+            z_index,
+            null
+        );
+    }
+
+
+
+    pub fn flush_batched_sprites() void {
+        seika.ska_window_render();
+    }
+};
 
 // Input
 pub const InputKey = enum(c_uint) {
