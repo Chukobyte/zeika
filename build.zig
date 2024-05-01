@@ -34,6 +34,8 @@ pub fn build(b: *std.Build) !void {
 
     const create_demo: bool = b.option(bool, "create_demo", "Will create a demo executable") orelse false;
 
+    _ = b.addModule("zeika", .{ .root_source_file = .{ .path = "src/zeika/zeika.zig" } });
+
     const exe: *std.Build.Step.Compile = b.addExecutable(.{
         .name = "main",
         .root_source_file = .{ .path = "src/demo.zig" },
