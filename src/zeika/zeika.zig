@@ -1,6 +1,7 @@
 const std = @import("std");
 
-const math = @import("math.zig");
+pub const Math = @import("math.zig");
+pub const Event = @import("event.zig");
 
 const seika = @cImport({
     @cInclude("seika/seika.h");
@@ -45,7 +46,7 @@ pub const Texture = struct {
 };
 
 pub const Renderer = struct {
-    pub fn queue_draw_sprite(texture: *const Texture, source: *const math.Rect2, size: *const math.Vec2, color: *const math.Color, flip_h: bool, flip_v: bool, transform: *const math.Transform2D, z_index: i32) void {
+    pub fn queue_draw_sprite(texture: *const Texture, source: *const Math.Rect2, size: *const Math.Vec2, color: *const Math.Color, flip_h: bool, flip_v: bool, transform: *const Math.Transform2D, z_index: i32) void {
         const ska_transform = seika.SkaTransform2D{
             .position = seika.SkaVector2{ .x = transform.position.x, .y = transform.position.y },
             .scale = seika.SkaVector2{ .x = transform.scale.x, .y = transform.scale.y },
