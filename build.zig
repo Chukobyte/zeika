@@ -44,19 +44,15 @@ pub fn build(b: *std.Build) !void {
     // Dependencies
     const seika_lib: *std.Build.Step.Compile = try add_seika(b, target, optimize);
 
-    const zeika_lib: *std.Build.Step.Compile = b.addStaticLibrary(.{
-        .name = "zeika",
+    const zeika_mod = b.addModule("zeika", .{
         .root_source_file = .{ .path = "src/zeika/zeika.zig" },
-        .target = target,
-        .optimize = optimize,
     });
-    zeika_lib.installLibraryHeaders(seika_lib);
-    zeika_lib.linkLibrary(seika_lib);
-    b.installArtifact(zeika_lib);
+    zeika_mod.linkLibrary(seika_lib);
 
     if (create_demo) {
         exe.linkLibC();
-        exe.linkLibrary(zeika_lib);
+        exe.root_module.addImport("zeika", zeika_mod);
+        exe.linkLibrary(seika_lib);
 
         b.installArtifact(exe);
 
