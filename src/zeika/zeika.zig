@@ -1,9 +1,9 @@
 const std = @import("std");
 
+const seika = @import("seika_includes.zig").seika;
+
 pub const math = @import("math.zig");
 pub const event = @import("event.zig");
-
-const seika = @import("seika_includes.zig").seika;
 
 // Seika
 pub inline fn initAll(window_title: []const u8, window_width: i32, window_height: i32, resolution_width: i32, resolution_height: i32) !void {
@@ -27,7 +27,7 @@ pub inline fn isRunning() bool {
 // Rendering
 pub const Texture = struct {
 
-    const Handle = struct {
+    pub const Handle = struct {
         internal_texture: [*c]seika.SkaTexture = undefined,
     };
 
@@ -44,7 +44,7 @@ pub const Texture = struct {
 };
 
 pub const Renderer = struct {
-    const SpriteDrawQueueConfig = struct {
+    pub const SpriteDrawQueueConfig = struct {
         texture_handle: Texture.Handle,
         draw_source: math.Rect2,
         size: math.Vec2,
