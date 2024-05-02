@@ -1,23 +1,18 @@
 const std = @import("std");
 
-pub const Math = @import("math.zig");
-pub const Event = @import("event.zig");
+pub const math = @import("math.zig");
+pub const event = @import("event.zig");
 
-const seika = @cImport({
-    @cInclude("seika/seika.h");
-    @cInclude("seika/rendering/texture.h");
-    @cInclude("seika/rendering/renderer.h");
-    @cInclude("seika/input/input.h");
-});
+const seika = @import("seika_includes.zig").seika;
 
 // Seika
-pub inline fn init_all(window_title: []const u8, window_width: i32, window_height: i32, resolution_width: i32, resolution_height: i32) !void {
+pub inline fn initAll(window_title: []const u8, window_width: i32, window_height: i32, resolution_width: i32, resolution_height: i32) !void {
     if (!seika.ska_init_all(&window_title[0], window_width, window_height, resolution_width, resolution_height)) {
         return error.ZeikaInitFailure;
     }
 }
 
-pub inline fn shutdown_all() void {
+pub inline fn shutdownAll() void {
     seika.ska_shutdown_all();
 }
 
@@ -25,215 +20,219 @@ pub inline fn update() void {
     seika.ska_update();
 }
 
-pub inline fn is_running() bool {
+pub inline fn isRunning() bool {
     return seika.ska_is_running();
 }
 
 // Rendering
 pub const Texture = struct {
-    internal_texture: *seika.SkaTexture = undefined,
 
-    pub fn init_solid_colored_texture(width: i32, height: i32, color_value: u32) Texture {
+    const Handle = struct {
+        internal_texture: [*c]seika.SkaTexture = undefined,
+    };
+
+    pub fn initSolidColoredTexture(width: i32, height: i32, color_value: u32) Handle {
         const texture = seika.ska_texture_create_solid_colored_texture(width, height, color_value);
-        return @This(){
+        return Handle{
             .internal_texture = texture,
         };
     }
 
-    pub fn deinit_texture(texture: *Texture) void {
+    pub fn deinit(texture: Handle) void {
         seika.ska_texture_delete(texture.internal_texture);
     }
 };
 
 pub const Renderer = struct {
-    pub fn queue_draw_sprite(texture: *const Texture, source: *const Math.Rect2, size: *const Math.Vec2, color: *const Math.Color, flip_h: bool, flip_v: bool, transform: *const Math.Transform2D, z_index: i32) void {
-        const ska_transform = seika.SkaTransform2D{
-            .position = seika.SkaVector2{ .x = transform.position.x, .y = transform.position.y },
-            .scale = seika.SkaVector2{ .x = transform.scale.x, .y = transform.scale.y },
-            .rotation = transform.rotation,
-        };
-        const r: f32 = @floatFromInt(color.r);
-        const g: f32 = @floatFromInt(color.g);
-        const b: f32 = @floatFromInt(color.b);
-        const a: f32 = @floatFromInt(color.a);
+    const SpriteDrawQueueConfig = struct {
+        texture_handle: Texture.Handle,
+        draw_source: math.Rect2,
+        size: math.Vec2,
+        transform: *const math.Transform2D,
+        color: math.Color = math.Color.White,
+        flip_h: bool = false,
+        flip_v: bool = false,
+        z_index: i32 = 0,
+    };
+
+    pub fn queueDrawSprite(draw_config: *const SpriteDrawQueueConfig) void {
+        const source_rect: seika.SkaRect2 = draw_config.draw_source.toSkaRect2();
         seika.ska_renderer_queue_sprite_draw(
-            texture.internal_texture,
-            seika.SkaRect2{ .x = source.x, .y = source.y, .w = source.w, .h = source.h },
-            seika.SkaSize2D{ .w = size.x, .h = size.y },
-            seika.SkaColor{ .r = 255.0 / r, .g = 255.0 / g, .b = 255.0 / b, .a = 255.0 / a },
-            flip_h,
-            flip_v,
-            &ska_transform,
-            z_index,
-            null
+            draw_config.texture_handle.internal_texture,
+            source_rect,
+            draw_config.size.toSkaSize2D(),
+            draw_config.color.ToSkaColor(),
+            draw_config.flip_h,
+            draw_config.flip_v,
+            &draw_config.transform.toSkaTransform2D(),
+            draw_config.z_index,
+            null // We don't have a shader instance api in zig yet
         );
     }
 
-
-
-    pub fn flush_batched_sprites() void {
+    pub fn flushBatchedSprites() void {
         seika.ska_window_render();
     }
 };
 
 // Input
 pub const InputKey = enum(c_uint) {
-    INVALID,
+    invalid,
     // Gamepad
-    GAMEPAD_DPAD_DOWN,
-    GAMEPAD_DPAD_UP,
-    GAMEPAD_DPAD_LEFT,
-    GAMEPAD_DPAD_RIGHT,
-    GAMEPAD_FACE_BUTTON_NORTH,  // XBOX Y
-    GAMEPAD_FACE_BUTTON_SOUTH,  // XBOX A
-    GAMEPAD_FACE_BUTTON_EAST,   // XBOX B
-    GAMEPAD_FACE_BUTTON_WEST,   // XBOX X
-    GAMEPAD_START,
-    GAMEPAD_BACK,
-    GAMEPAD_LEFT_SHOULDER,      // PS L1
-    GAMEPAD_LEFT_TRIGGER,       // PS L2
-    GAMEPAD_LEFT_ANALOG_BUTTON, // PS L3
-    GAMEPAD_LEFT_ANALOG_2D_AXIS_X,
-    GAMEPAD_LEFT_ANALOG_2D_AXIS_Y,
-    GAMEPAD_RIGHT_SHOULDER,      // PS R1
-    GAMEPAD_RIGHT_TRIGGER,       // PS R2
-    GAMEPAD_RIGHT_ANALOG_BUTTON, // PS R3
-    GAMEPAD_RIGHT_ANALOG_2D_AXIS_X,
-    GAMEPAD_RIGHT_ANALOG_2D_AXIS_Y,
-    GAMEPAD_LEFT_ANALOG_LEFT,
-    GAMEPAD_LEFT_ANALOG_RIGHT,
-    GAMEPAD_LEFT_ANALOG_UP,
-    GAMEPAD_LEFT_ANALOG_DOWN,
-    GAMEPAD_RIGHT_ANALOG_LEFT,
-    GAMEPAD_RIGHT_ANALOG_RIGHT,
-    GAMEPAD_RIGHT_ANALOG_UP,
-    GAMEPAD_RIGHT_ANALOG_DOWN,
+    gamepad_dpad_down,
+    gamepad_dpad_up,
+    gamepad_dpad_left,
+    gamepad_dpad_right,
+    gamepad_face_button_north,  // xbox y
+    gamepad_face_button_south,  // xbox a
+    gamepad_face_button_east,   // xbox b
+    gamepad_face_button_west,   // xbox x
+    gamepad_start,
+    gamepad_back,
+    gamepad_left_shoulder,      // ps l1
+    gamepad_left_trigger,       // ps l2
+    gamepad_left_analog_button, // ps l3
+    gamepad_left_analog_2d_axis_x,
+    gamepad_left_analog_2d_axis_y,
+    gamepad_right_shoulder,      // ps r1
+    gamepad_right_trigger,       // ps r2
+    gamepad_right_analog_button, // ps r3
+    gamepad_right_analog_2d_axis_x,
+    gamepad_right_analog_2d_axis_y,
+    gamepad_left_analog_left,
+    gamepad_left_analog_right,
+    gamepad_left_analog_up,
+    gamepad_left_analog_down,
+    gamepad_right_analog_left,
+    gamepad_right_analog_right,
+    gamepad_right_analog_up,
+    gamepad_right_analog_down,
     // Keyboard
-    KEYBOARD_TAB,
-    KEYBOARD_LEFT,
-    KEYBOARD_RIGHT,
-    KEYBOARD_UP,
-    KEYBOARD_DOWN,
-    KEYBOARD_PAGE_DOWN,
-    KEYBOARD_PAGE_UP,
-    KEYBOARD_HOME,
-    KEYBOARD_END,
-    KEYBOARD_INSERT,
-    KEYBOARD_DELETE,
-    KEYBOARD_BACKSPACE,
-    KEYBOARD_SPACE,
-    KEYBOARD_RETURN,
-    KeyboardEscape,
-    KEYBOARD_QUOTE,
-    KEYBOARD_COMMA,
-    KEYBOARD_MINUS,
-    KEYBOARD_PERIOD,
-    KEYBOARD_SLASH,
-    KEYBOARD_SEMICOLON,
-    KEYBOARD_EQUALS,
-    KEYBOARD_LEFT_BRACKET,
-    KEYBOARD_RIGHT_BRACKET,
-    KEYBOARD_BACKSLASH,
-    KEYBOARD_BACKQUOTE,
-    KEYBOARD_CAPS_LOCK,
-    KEYBOARD_SCROLL_LOCK,
-    KEYBOARD_NUM_LOCK_CLEAR,
-    KEYBOARD_PRINT_SCREEN,
-    KEYBOARD_PAUSE,
-    KEYBOARD_KEYPAD_0,
-    KEYBOARD_KEYPAD_1,
-    KEYBOARD_KEYPAD_2,
-    KEYBOARD_KEYPAD_3,
-    KEYBOARD_KEYPAD_4,
-    KEYBOARD_KEYPAD_5,
-    KEYBOARD_KEYPAD_6,
-    KEYBOARD_KEYPAD_7,
-    KEYBOARD_KEYPAD_8,
-    KEYBOARD_KEYPAD_9,
-    KEYBOARD_KEYPAD_PERIOD,
-    KEYBOARD_KEYPAD_DIVIDE,
-    KEYBOARD_KEYPAD_MULTIPLY,
-    KEYBOARD_KEYPAD_MINUS,
-    KEYBOARD_KEYPAD_PLUS,
-    KEYBOARD_KEYPAD_ENTER,
-    KEYBOARD_KEYPAD_EQUALS,
-    KEYBOARD_LEFT_CONTROL,
-    KEYBOARD_LEFT_SHIFT,
-    KEYBOARD_LEFT_ALT,
-    KEYBOARD_LEFT_GUI,
-    KEYBOARD_RIGHT_CONTROL,
-    KEYBOARD_RIGHT_SHIFT,
-    KEYBOARD_RIGHT_ALT,
-    KEYBOARD_RIGHT_GUI,
-    KEYBOARD_APPLICATION,
-    KEYBOARD_NUM_0,
-    KEYBOARD_NUM_1,
-    KEYBOARD_NUM_2,
-    KEYBOARD_NUM_3,
-    KEYBOARD_NUM_4,
-    KEYBOARD_NUM_5,
-    KEYBOARD_NUM_6,
-    KEYBOARD_NUM_7,
-    KEYBOARD_NUM_8,
-    KEYBOARD_NUM_9,
-    KEYBOARD_A,
-    KEYBOARD_B,
-    KEYBOARD_C,
-    KEYBOARD_D,
-    KEYBOARD_E,
-    KEYBOARD_F,
-    KEYBOARD_G,
-    KEYBOARD_H,
-    KEYBOARD_I,
-    KEYBOARD_J,
-    KEYBOARD_K,
-    KEYBOARD_L,
-    KEYBOARD_M,
-    KEYBOARD_N,
-    KEYBOARD_O,
-    KEYBOARD_P,
-    KEYBOARD_Q,
-    KEYBOARD_R,
-    KEYBOARD_S,
-    KEYBOARD_T,
-    KEYBOARD_U,
-    KEYBOARD_V,
-    KEYBOARD_W,
-    KEYBOARD_X,
-    KEYBOARD_Y,
-    KEYBOARD_Z,
-    KEYBOARD_F1,
-    KEYBOARD_F2,
-    KEYBOARD_F3,
-    KEYBOARD_F4,
-    KEYBOARD_F5,
-    KEYBOARD_F6,
-    KEYBOARD_F7,
-    KEYBOARD_F8,
-    KEYBOARD_F9,
-    KEYBOARD_F10,
-    KEYBOARD_F11,
-    KEYBOARD_F12,
-    KEYBOARD_F13,
-    KEYBOARD_F14,
-    KEYBOARD_F15,
-    KEYBOARD_F16,
-    KEYBOARD_F17,
-    KEYBOARD_F18,
-    KEYBOARD_F19,
-    KEYBOARD_F20,
-    KEYBOARD_F21,
-    KEYBOARD_F22,
-    KEYBOARD_F23,
-    KEYBOARD_F24,
-    KEYBOARD_APP_FORWARD,
-    KEYBOARD_APP_BACK,
-    // Mouse
-    MOUSE_BUTTON_LEFT,
-    MOUSE_BUTTON_RIGHT,
-    MOUSE_BUTTON_MIDDLE,
+    keyboard_tab,
+    keyboard_left,
+    keyboard_right,
+    keyboard_up,
+    keyboard_down,
+    keyboard_page_down,
+    keyboard_page_up,
+    keyboard_home,
+    keyboard_end,
+    keyboard_insert,
+    keyboard_delete,
+    keyboard_backspace,
+    keyboard_space,
+    keyboard_return,
+    keyboard_escape,
+    keyboard_quote,
+    keyboard_comma,
+    keyboard_minus,
+    keyboard_period,
+    keyboard_slash,
+    keyboard_semicolon,
+    keyboard_equals,
+    keyboard_left_bracket,
+    keyboard_right_bracket,
+    keyboard_backslash,
+    keyboard_backquote,
+    keyboard_caps_lock,
+    keyboard_scroll_lock,
+    keyboard_num_lock_clear,
+    keyboard_print_screen,
+    keyboard_pause,
+    keyboard_keypad_0,
+    keyboard_keypad_1,
+    keyboard_keypad_2,
+    keyboard_keypad_3,
+    keyboard_keypad_4,
+    keyboard_keypad_5,
+    keyboard_keypad_6,
+    keyboard_keypad_7,
+    keyboard_keypad_8,
+    keyboard_keypad_9,
+    keyboard_keypad_period,
+    keyboard_keypad_divide,
+    keyboard_keypad_multiply,
+    keyboard_keypad_minus,
+    keyboard_keypad_plus,
+    keyboard_keypad_enter,
+    keyboard_keypad_equals,
+    keyboard_left_control,
+    keyboard_left_shift,
+    keyboard_left_alt,
+    keyboard_left_gui,
+    keyboard_right_control,
+    keyboard_right_shift,
+    keyboard_right_alt,
+    keyboard_right_gui,
+    keyboard_application,
+    keyboard_num_0,
+    keyboard_num_1,
+    keyboard_num_2,
+    keyboard_num_3,
+    keyboard_num_4,
+    keyboard_num_5,
+    keyboard_num_6,
+    keyboard_num_7,
+    keyboard_num_8,
+    keyboard_num_9,
+    keyboard_a,
+    keyboard_b,
+    keyboard_c,
+    keyboard_d,
+    keyboard_e,
+    keyboard_f,
+    keyboard_g,
+    keyboard_h,
+    keyboard_i,
+    keyboard_j,
+    keyboard_k,
+    keyboard_l,
+    keyboard_m,
+    keyboard_n,
+    keyboard_o,
+    keyboard_p,
+    keyboard_q,
+    keyboard_r,
+    keyboard_s,
+    keyboard_t,
+    keyboard_u,
+    keyboard_v,
+    keyboard_w,
+    keyboard_x,
+    keyboard_y,
+    keyboard_z,
+    keyboard_f1,
+    keyboard_f2,
+    keyboard_f3,
+    keyboard_f4,
+    keyboard_f5,
+    keyboard_f6,
+    keyboard_f7,
+    keyboard_f8,
+    keyboard_f9,
+    keyboard_f10,
+    keyboard_f11,
+    keyboard_f12,
+    keyboard_f13,
+    keyboard_f14,
+    keyboard_f15,
+    keyboard_f16,
+    keyboard_f17,
+    keyboard_f18,
+    keyboard_f19,
+    keyboard_f20,
+    keyboard_f21,
+    keyboard_f22,
+    keyboard_f23,
+    keyboard_f24,
+    keyboard_app_forward,
+    keyboard_app_back,
+    // mouse
+    mouse_button_left,
+    mouse_button_right,
+    mouse_button_middle,
 };
 
-pub inline fn is_key_just_pressed(key: InputKey, device_index: seika.SkaInputDeviceIndex) bool {
+pub inline fn isKeyJustPressed(key: InputKey, device_index: seika.SkaInputDeviceIndex) bool {
     return seika.ska_input_is_key_just_pressed(@intFromEnum(key), device_index);
 }
