@@ -8,6 +8,13 @@ pub fn Vector2(comptime T: type) type {
         x: T = @as(T, 0),
         y: T = @as(T, 0),
 
+        pub const Zero = @This(){ .x = @as(T, 0), .y = @as(T, 0) };
+        pub const One = @This(){ .x = @as(T, 1), .y = @as(T, 1) };
+        pub const Left = @This(){ .x = @as(T, -1), .y = @as(T, 0) };
+        pub const Right = @This(){ .x = @as(T, 1), .y = @as(T, 0) };
+        pub const Up = @This(){ .x = @as(T, 0), .y = @as(T, -1) };
+        pub const Down = @This(){ .x = @as(T, 0), .y = @as(T, 1) };
+
         pub fn Equals(a: *const @This(), b: *const @This()) bool {
             return a.x == b.x and a.y == b.y;
         }
@@ -63,6 +70,9 @@ pub fn Transformation2D(comptime PosT: type, comptime ScaleT: type, comptime Rot
         scale: Vector2(ScaleT) = Vector2(ScaleT){ .x = @as(ScaleT, 1), .y = @as(ScaleT, 1) },
         rotation: RotT = @as(RotT, 0),
 
+        // Defaults to identity, so just create an empty struct
+        pub const Identity = @This(){};
+
         pub fn toSkaTransform2D(self: *const @This()) seika.SkaTransform2D {
             return seika.SkaTransform2D{
                 .position = seika.SkaVector2{ .x = @floatCast(self.position.x), .y = @floatCast(self.position.y) },
@@ -85,9 +95,7 @@ pub fn Rectangle2(comptime T: type) type {
         h: T,
 
         pub fn toSkaRect2(self: *const @This()) seika.SkaRect2 {
-            return seika.SkaRect2{
-                .x = @floatCast(self.x), .y = @floatCast(self.y), .w = @floatCast(self.w), .h = @floatCast(self.h)
-            };
+            return seika.SkaRect2{ .x = @floatCast(self.x), .y = @floatCast(self.y), .w = @floatCast(self.w), .h = @floatCast(self.h) };
         }
     };
 }
@@ -115,12 +123,7 @@ pub const Color = struct {
         const g: f32 = @floatFromInt(self.g);
         const b: f32 = @floatFromInt(self.b);
         const a: f32 = @floatFromInt(self.a);
-        return seika.SkaColor{
-            .r = r / 255.0,
-            .g = g / 255.0,
-            .b = b / 255.0,
-            .a = a / 255.0
-        };
+        return seika.SkaColor{ .r = r / 255.0, .g = g / 255.0, .b = b / 255.0, .a = a / 255.0 };
     }
 };
 
