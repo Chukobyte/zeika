@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const seika = @import("seika_includes.zig").seika;
+pub const seika = @import("seika_includes.zig").seika;
 
 pub const math = @import("math.zig");
 pub const event = @import("event.zig");
