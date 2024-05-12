@@ -26,7 +26,7 @@ pub fn main() !void {
             .transform = &math.Transform2D{ .position = math.Vec2{ .x = 100.0, .y = 100.0 } },
             .color = math.Color.Red,
         });
-        Renderer.flushBatchedSprites();
+        Renderer.flushBatches();
     }
 
     zeika.shutdownAll();

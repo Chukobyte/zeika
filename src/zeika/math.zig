@@ -118,7 +118,7 @@ pub const Color = struct {
     pub const Green = @This(){ .r = 0, .g = 255, .b = 0 };
     pub const Blue = @This(){ .r = 0, .g = 0, .b = 255 };
 
-    pub fn ToSkaColor(self: *const Color) seika.SkaColor {
+    pub fn toSkaColor(self: *const Color) seika.SkaColor {
         const r: f32 = @floatFromInt(self.r);
         const g: f32 = @floatFromInt(self.g);
         const b: f32 = @floatFromInt(self.b);

@@ -55,13 +55,22 @@ pub const Renderer = struct {
         z_index: i32 = 0,
     };
 
+    pub const TextDrawQueueConfig = struct {
+        font: [*c]seika.SkaFont,
+        text: []const u8,
+        position: math.Vec2,
+        scale: f32 = 1.0,
+        color: math.Color = math.Color.White,
+        z_index: i32 = 0,
+    };
+
     pub fn queueDrawSprite(draw_config: *const SpriteDrawQueueConfig) void {
         const source_rect: seika.SkaRect2 = draw_config.draw_source.toSkaRect2();
         seika.ska_renderer_queue_sprite_draw(
             draw_config.texture_handle.internal_texture,
             source_rect,
             draw_config.size.toSkaSize2D(),
-            draw_config.color.ToSkaColor(),
+            draw_config.color.toSkaColor(),
             draw_config.flip_h,
             draw_config.flip_v,
             &draw_config.transform.toSkaTransform2D(),
@@ -70,7 +79,19 @@ pub const Renderer = struct {
         );
     }
 
-    pub fn flushBatchedSprites() void {
+    pub fn queueDrawText(draw_config: *const TextDrawQueueConfig) void {
+        seika.ska_renderer_queue_font_draw_call(
+            draw_config.font,
+            draw_config.text,
+            draw_config.position.x,
+            draw_config.position.y,
+            draw_config.scale,
+            draw_config.color.toSkaColor(),
+            draw_config.z_index
+        );
+    }
+
+    pub fn flushBatches() void {
         seika.ska_window_render();
     }
 };
