@@ -60,7 +60,7 @@ pub const Font = struct {
 
     pub fn initFromMemory(buffer: *anyopaque, buffer_len: usize, init_params: InitParams) @This() {
         const new_font = Font{
-            .font = seika.ska_font_create_font_from_memory(buffer, buffer_len, init_params.font_size, init_params.apply_nearest_neighbor)
+            .internal_font = seika.ska_font_create_font_from_memory(buffer, buffer_len, init_params.font_size, init_params.apply_nearest_neighbor)
         };
         return new_font;
     }
