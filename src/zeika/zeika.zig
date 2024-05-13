@@ -65,7 +65,7 @@ pub const Font = struct {
         return new_font;
     }
 
-    pub fn deinit(self: *@This()) void {
+    pub fn deinit(self: *const @This()) void {
         seika.ska_font_delete(self.internal_font);
     }
 };
