@@ -109,7 +109,7 @@ pub const Renderer = struct {
     pub fn queueDrawText(draw_config: *const TextDrawQueueConfig) void {
         seika.ska_renderer_queue_font_draw_call(
             draw_config.font.internal_font,
-            draw_config.text,
+            &draw_config.text[0],
             draw_config.position.x,
             draw_config.position.y,
             draw_config.scale,
