@@ -38,8 +38,35 @@ pub const Texture = struct {
         };
     }
 
+    pub fn initFromMemory(buffer: *anyopaque, buffer_len: usize) Handle {
+        const texture = seika.ska_texture_create_from_memory(buffer, buffer_len);
+        return Handle{
+            .internal_texture = texture,
+        };
+    }
+
     pub fn deinit(texture: Handle) void {
         seika.ska_texture_delete(texture.internal_texture);
+    }
+};
+
+pub const Font = struct {
+    internal_font: [*c]seika.SkaFont,
+
+    pub const InitParams = struct {
+        font_size: i32 = 16,
+        apply_nearest_neighbor: bool = true,
+    };
+
+    pub fn initFromMemory(buffer: *anyopaque, buffer_len: usize, init_params: InitParams) @This() {
+        const new_font = Font{
+            .font = seika.ska_font_create_font_from_memory(buffer, buffer_len, init_params.font_size, init_params.apply_nearest_neighbor)
+        };
+        return new_font;
+    }
+
+    pub fn deinit(self: *@This()) void {
+        seika.ska_font_delete(self.internal_font);
     }
 };
 
