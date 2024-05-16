@@ -2,6 +2,7 @@ const std = @import("std");
 
 const math = @import("zeika/math.zig");
 const Vec2f = math.Vec2f;
+const Rect2 = math.Rect2;
 
 const Event = @import("zeika/event.zig").Event;
 
@@ -12,6 +13,12 @@ test "math general test" {
     const combined_arrow = Vec2f.Add(&left_arrow, &right_arrow);
 
     try std.testing.expect(Vec2f.Equals(&combined_arrow, &Vec2f{ .x = 7.0, .y = 12.0 }));
+
+    const rectA = Rect2{ .x = 10.0, .y = 20.0, .w = 64.0, .h = 64.0 };
+    const rectB = Rect2{ .x = 5.0, .y = 30.0, .w = 32.0, .h = 32.0 };
+    const rectC = Rect2{ .x = 80.0, .y = -30.0, .w = 32.0, .h = 32.0 };
+    try std.testing.expect(rectA.doesOverlap(&rectB));
+    try std.testing.expect(!rectA.doesOverlap(&rectC));
 }
 
 // Event Tests

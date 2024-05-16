@@ -94,6 +94,15 @@ pub fn Rectangle2(comptime T: type) type {
         w: T,
         h: T,
 
+        pub fn doesOverlap(self: *const @This(), other: *const @This()) bool {
+            return !(
+                self.x > other.x + other.w or
+                self.x + self.w < other.x or
+                self.y > other.y + other.h or
+                self.y + self.h < other.y
+            );
+        }
+
         pub fn toSkaRect2(self: *const @This()) seika.SkaRect2 {
             return seika.SkaRect2{ .x = @floatCast(self.x), .y = @floatCast(self.y), .w = @floatCast(self.w), .h = @floatCast(self.h) };
         }
