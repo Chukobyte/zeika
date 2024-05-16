@@ -142,3 +142,7 @@ pub const LinearColor = struct {
     b: f32,
     a: f32 = 1.0,
 };
+
+pub inline fn mapToRange(comptime T: type, input: T, input_min: T, input_max: T, output_min: T, output_max: T) T {
+    return (((input - input_min) / (input_max - input_min)) * (output_max - output_min) + output_min);
+}

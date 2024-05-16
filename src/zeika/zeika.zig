@@ -289,3 +289,11 @@ pub inline fn getMousePosition() math.Vec2 {
     const globalMouse: [*c]seika.SkaMouse = seika.ska_input_get_mouse();
     return math.Vec2{ .x = globalMouse.*.position.x, .y = globalMouse.*.position.y };
 }
+
+pub fn getWindowSize() math.Vec2i {
+    const render_context: [*c]seika.SkaRenderContext = seika.ska_render_context_get();
+    return math.Vec2i{
+        .x = render_context.*.windowWidth,
+        .y = render_context.*.windowHeight
+    };
+}
