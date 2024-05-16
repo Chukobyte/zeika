@@ -284,3 +284,8 @@ pub const InputKey = enum(c_uint) {
 pub inline fn isKeyJustPressed(key: InputKey, device_index: seika.SkaInputDeviceIndex) bool {
     return seika.ska_input_is_key_just_pressed(@intFromEnum(key), device_index);
 }
+
+pub inline fn getMousePosition() math.Vec2 {
+    const globalMouse: [*c]seika.SkaMouse = seika.ska_input_get_mouse();
+    return math.Vec2{ .x = globalMouse.position.x, .y = globalMouse.position.y };
+}
