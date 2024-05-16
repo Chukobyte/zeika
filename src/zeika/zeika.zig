@@ -287,5 +287,5 @@ pub inline fn isKeyJustPressed(key: InputKey, device_index: seika.SkaInputDevice
 
 pub inline fn getMousePosition() math.Vec2 {
     const globalMouse: [*c]seika.SkaMouse = seika.ska_input_get_mouse();
-    return math.Vec2{ .x = globalMouse.position.x, .y = globalMouse.position.y };
+    return math.Vec2{ .x = globalMouse.*.position.x, .y = globalMouse.*.position.y };
 }
