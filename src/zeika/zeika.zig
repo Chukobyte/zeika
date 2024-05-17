@@ -281,8 +281,16 @@ pub const InputKey = enum(c_uint) {
     mouse_button_middle,
 };
 
+pub inline fn isKeyPressed(key: InputKey, device_index: seika.SkaInputDeviceIndex) bool {
+    return seika.ska_input_is_key_pressed(@intFromEnum(key), device_index);
+}
+
 pub inline fn isKeyJustPressed(key: InputKey, device_index: seika.SkaInputDeviceIndex) bool {
     return seika.ska_input_is_key_just_pressed(@intFromEnum(key), device_index);
+}
+
+pub inline fn isKeyJustReleased(key: InputKey, device_index: seika.SkaInputDeviceIndex) bool {
+    return seika.ska_input_is_key_just_released(@intFromEnum(key), device_index);
 }
 
 pub inline fn getMousePosition() math.Vec2 {
