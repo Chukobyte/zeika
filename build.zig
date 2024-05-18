@@ -24,6 +24,8 @@ const stb_image_include_path = stb_image_dep_path;
 const glad_dep_path = deps_path ++ "/glad";
 const glad_include_path = deps_path;
 
+const miniaudio_include_path = deps_path ++ "/miniaudio";
+
 const seika_dep_path = deps_path ++ "/seika";
 const seika_include_path = deps_path;
 
@@ -117,7 +119,7 @@ fn add_sdl(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builti
         },
     }
 
-    sdl_lib.installHeadersDirectory(sdl_include_path, "SDL3");
+    sdl_lib.installHeadersDirectory(.{ .path = sdl_include_path }, "SDL3", .{});
     b.installArtifact(sdl_lib);
 
     return sdl_lib;
@@ -133,12 +135,14 @@ fn add_freetype(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.b
     });
     zlib_lib.linkLibC();
     zlib_lib.addIncludePath(.{ .path = zlib_src_dir });
-    zlib_lib.installHeadersDirectoryOptions(.{
-        .source_dir = .{ .path = zlib_src_dir },
-        .install_dir = .header,
-        .install_subdir = "",
-        .exclude_extensions = &.{ ".c", ".in", ".txt" },
-    });
+
+    zlib_lib.installHeadersDirectory(.{ .path = zlib_src_dir }, ".", .{ .exclude_extensions = &.{ ".c", ".in", ".txt" } });
+    // zlib_lib.installHeadersDirectoryOptions(.{
+    //     .source_dir = .{ .path = zlib_src_dir },
+    //     .install_dir = .header,
+    //     .install_subdir = "",
+    //     .exclude_extensions = &.{ ".c", ".in", ".txt" },
+    // });
 
     var zlib_flags = std.ArrayList([]const u8).init(b.allocator);
     defer zlib_flags.deinit();
@@ -177,9 +181,9 @@ fn add_freetype(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.b
     });
     libpng_lib.addCSourceFiles(.{ .files = &libpng_srcs, .flags = libpng_flags.items });
 
-    libpng_lib.installHeader(libpng_dep_path ++ "/include/pnglibconf.h", "pnglibconf.h");
+    libpng_lib.installHeader(.{.path = libpng_dep_path ++ "/include/pnglibconf.h" }, "pnglibconf.h");
     inline for (libpng_headers) |header| {
-        libpng_lib.installHeader(libpng_dep_path ++ "/src/" ++ header, header);
+        libpng_lib.installHeader(.{ .path = libpng_dep_path ++ "/src/" ++ header }, header);
     }
 
     b.installArtifact(libpng_lib);
@@ -237,7 +241,7 @@ fn add_freetype(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.b
 
     ft_lib.addCSourceFiles(.{ .files = &ft_srcs, .flags = flags.items });
 
-    ft_lib.installHeadersDirectory(ft_include_path, ".");
+    ft_lib.installHeadersDirectory(.{ .path = ft_include_path }, ".", .{});
     b.installArtifact(ft_lib);
 
     return ft_lib;
@@ -255,7 +259,7 @@ fn add_cglm(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.built
     cglm_lib.defineCMacro("CGLM_STATIC", "1");
     cglm_lib.linkLibC();
 
-    cglm_lib.installHeadersDirectory(cglm_include_path, ".");
+    cglm_lib.installHeadersDirectory(.{ .path = cglm_include_path }, ".", .{});
     b.installArtifact(cglm_lib);
 
     return cglm_lib;
@@ -273,7 +277,7 @@ fn add_kuba_zip(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.b
 
     zip_lib.linkLibC();
 
-    zip_lib.installHeadersDirectory(kuba_zip_include_path, ".");
+    zip_lib.installHeadersDirectory(.{ .path = kuba_zip_include_path }, ".", .{});
     b.installArtifact(zip_lib);
 
     return zip_lib;
@@ -291,7 +295,7 @@ fn add_stb_image(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.
 
     stb_image_lib.linkLibC();
 
-    stb_image_lib.installHeader(stb_image_include_path ++ "/stb_image.h", "stb_image/stb_image.h");
+    stb_image_lib.installHeader(.{ .path = stb_image_include_path ++ "/stb_image.h" }, "stb_image/stb_image.h");
     b.installArtifact(stb_image_lib);
 
     return stb_image_lib;
@@ -309,7 +313,7 @@ fn add_glad(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.built
 
     glad_lib.linkLibC();
 
-    glad_lib.installHeader(glad_include_path ++ "/glad/glad.h", "glad/glad.h");
+    glad_lib.installHeader(.{ .path = glad_include_path ++ "/glad/glad.h" }, "glad/glad.h");
     b.installArtifact(glad_lib);
 
     return glad_lib;
@@ -324,6 +328,8 @@ fn add_seika(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.buil
 
     seika_lib.addIncludePath(.{ .path = seika_include_path });
     seika_lib.addIncludePath(.{ .path = sdl_include_path });
+    seika_lib.addIncludePath(.{ .path = miniaudio_include_path });
+    seika_lib.addIncludePath(.{ .path = "include" });
     seika_lib.addCSourceFiles(.{ .files = &seika_srcs });
 
     seika_lib.linkLibC();
@@ -353,14 +359,9 @@ fn add_seika(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.buil
     seika_lib.linkLibrary(glad_lib);
     seika_lib.linkLibrary(stb_image_lib);
 
-    seika_lib.installHeadersDirectory(seika_include_path, ".");
-    // seika_lib.installLibraryHeaders(sdl_lib);
-    // seika_lib.installLibraryHeaders(ft_lib);
-    // seika_lib.installLibraryHeaders(cglm_lib);
-    // seika_lib.installLibraryHeaders(kuba_zip_lib);
-    // seika_lib.installLibraryHeaders(glad_lib);
-    // seika_lib.installLibraryHeaders(stb_image_lib);
-    seika_lib.installHeader(deps_path ++ "/miniaudio/miniaudio.h", "miniaudio.h");
+    seika_lib.installHeadersDirectory(.{ .path = seika_include_path }, ".", .{});
+    seika_lib.installHeadersDirectory(.{ .path = seika_include_path ++ "/cglm/include" }, ".", .{});
+    seika_lib.installHeadersDirectory(.{ .path = ft_include_path }, ".", .{});
 
     b.installArtifact(seika_lib);
 

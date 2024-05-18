@@ -10,14 +10,12 @@ pub fn Event(comptime T: type) type {
         };
 
         subscribers: std.ArrayList(Subscriber),
-        allocator: std.mem.Allocator,
         handle_index: SubscriberHandle = 1,
 
         /// Initializes event, call 'deinit' once completely finished with the event.
-        pub fn init(in_allocator: std.mem.Allocator) @This() {
+        pub fn init(allocator: std.mem.Allocator) @This() {
             return @This(){
-                .subscribers = std.ArrayList(Subscriber).init(in_allocator),
-                .allocator = in_allocator,
+                .subscribers = std.ArrayList(Subscriber).init(allocator),
             };
         }
 
@@ -55,6 +53,7 @@ pub fn Event(comptime T: type) type {
             }
         }
 
+        /// Clears all subscribers
         pub fn clearAndFree(self: *@This()) void {
             self.subscribers.clearAndFree();
         }
