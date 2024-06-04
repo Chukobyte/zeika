@@ -1,6 +1,8 @@
 const std = @import("std");
 
-pub const seika = @import("seika_includes.zig").seika;
+const seika_includes = @import("seika_includes.zig");
+pub const seika = seika_includes.seika;
+pub const sdl = seika_includes.sdl;
 
 pub const math = @import("math.zig");
 pub const event = @import("event.zig");
@@ -304,4 +306,42 @@ pub fn getWindowSize() math.Vec2i {
         .x = render_context.*.windowWidth,
         .y = render_context.*.windowHeight
     };
+}
+
+pub const UserSavePathConfig = struct {
+    org_name: []const u8,
+    app_name: []const u8,
+    relative_path: []const u8,
+};
+
+const max_buffer_size = 1024;
+var local_buffer: [max_buffer_size]u8 = undefined;
+
+pub fn get_user_save_path(config: UserSavePathConfig) ![]u8 {
+    const org_name = config.org_name;
+    const app_name = config.app_name;
+    const relative_path = config.relative_path;
+
+    var file_path = sdl.SDL_GetPrefPath(org_name.ptr, app_name.ptr);
+    if (file_path == null) {
+        return error.FailedToGetPrefPath;
+    }
+    defer sdl.SDL_free(file_path);
+
+    // Calculate the lengths
+    const file_path_len = std.mem.len(file_path);
+    const relative_path_len = relative_path.len;
+    const total_len = file_path_len + relative_path_len;
+
+    if (total_len >= max_buffer_size) {
+        return error.BufferTooSmall;
+    }
+
+    // Copy filePath to buffer
+    std.mem.copyForwards(u8, local_buffer[0..file_path_len], file_path[0..file_path_len]);
+
+    // Concatenate relativePath to buffer
+    std.mem.copyForwards(u8, local_buffer[file_path_len..total_len], relative_path);
+
+    return local_buffer[0..total_len];
 }

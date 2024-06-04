@@ -5,4 +5,10 @@ pub const seika = @cImport({
     @cInclude("seika/rendering/renderer.h");
     @cInclude("seika/rendering/render_context.h");
     @cInclude("seika/input/input.h");
+
+
+});
+
+pub const sdl = @cImport({
+    @cInclude("SDL3/SDL.h");
 });

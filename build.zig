@@ -62,6 +62,37 @@ pub fn build(b: *std.Build) !void {
         const run_step: *std.Build.Step = b.step("run", "Run the application");
         run_step.dependOn(&run_exe.step);
     }
+
+    // Test
+    const TestDefinition = struct {
+        name: []const u8,
+        file_path: []const u8,
+        description: []const u8,
+    };
+
+    const test_defs = [_]TestDefinition{
+        .{ .name = "test", .description = "Run unit tests for the game", .file_path = "src/tests.zig" },
+    };
+
+    for (test_defs) |def| {
+        const test_exe = b.addTest(.{
+            .root_source_file = .{ .path = def.file_path },
+            .target = target,
+            .optimize = optimize,
+            .link_libc = true,
+        });
+        test_exe.root_module.addImport("zeika", zeika_mod);
+        test_exe.addIncludePath(.{ .path = seika_include_path });
+        test_exe.addIncludePath(.{ .path = cglm_include_path });
+        test_exe.addIncludePath(.{ .path = ft_include_path });
+        test_exe.addIncludePath(.{ .path = sdl_include_path });
+
+        const run_test = b.addRunArtifact(test_exe);
+        run_test.has_side_effects = true;
+
+        const test_step = b.step(def.name, def.description);
+        test_step.dependOn(&run_test.step);
+    }
 }
 
 fn add_sdl(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) !*std.Build.Step.Compile {

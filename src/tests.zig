@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const zeika = @import("zeika/zeika.zig");
 const math = @import("zeika/math.zig");
 const Vec2f = math.Vec2f;
 const Rect2 = math.Rect2;
@@ -29,34 +30,6 @@ fn testCallbackFunc(message: []const u8) void {
 }
 
 test "event general test" {
-    // From main
-
-    // const MessageEventType: type = Event(fn ([]const u8) void);
-    // var new_event = MessageEventType.init(std.heap.page_allocator);
-    // defer new_event.deinit();
-    // _ = new_event.subscribe(struct {
-    // pub fn callback (message: []const u8) void {
-    //     std.debug.print("Message = {s}\n", .{ message });
-    //     }
-    // }.callback
-    // );
-    // new_event.broadcast(.{"Hey"});
-    // new_event.clearAndFree();
-    // new_event.broadcast(.{"Won't see"});
-    //
-    // const NumberEventType: type = Event(fn (i32, i32, i32) void);
-    // var new_num_event = NumberEventType.init(std.heap.page_allocator);
-    // defer new_num_event.deinit();
-    // const num_event_handle = new_num_event.subscribe(struct {
-    // pub fn callback (value1: i32, value2: i32, value3: i32) void {
-    //     std.debug.print("Value = ({d}, {d}, {d})\n", .{ value1, value2, value3 });
-    //     }
-    // }.callback
-    // );
-    // new_num_event.broadcast(.{2, 4, 6});
-    // new_num_event.unsubscribe(num_event_handle) catch { std.debug.print("Failed to unsub!", .{}); };
-    // new_num_event.broadcast(.{88, 3, 9});
-
     const MessageEventType = Event(fn ([]const u8) void);
     var new_event = MessageEventType.init(std.heap.page_allocator);
     defer new_event.deinit();
@@ -65,4 +38,9 @@ test "event general test" {
     try std.testing.expect(hasCalledBack);
     new_event.clearAndFree();
     new_event.broadcast(.{"Won't see"});
+}
+
+test "get user save path test" {
+    const save_path = try zeika.get_user_save_path(.{ .org_name = "chukobyte", .app_name = "test_app", .relative_path = "/save" });
+    std.debug.print("save_path = {s}\n", .{ save_path });
 }
