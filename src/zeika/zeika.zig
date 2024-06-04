@@ -1,8 +1,6 @@
 const std = @import("std");
 
-const seika_includes = @import("seika_includes.zig");
-pub const seika = seika_includes.seika;
-pub const sdl = seika_includes.sdl;
+pub const seika = @import("seika_includes.zig").seika;
 
 pub const math = @import("math.zig");
 pub const event = @import("event.zig");
@@ -322,26 +320,20 @@ pub fn get_user_save_path(config: UserSavePathConfig) ![]u8 {
     const app_name = config.app_name;
     const relative_path = config.relative_path;
 
-    var file_path = sdl.SDL_GetPrefPath(org_name.ptr, app_name.ptr);
+    var file_path = seika.ska_fs_get_user_save_path(org_name.ptr, app_name.ptr, relative_path.ptr);
     if (file_path == null) {
         return error.FailedToGetPrefPath;
     }
-    defer sdl.SDL_free(file_path);
+    defer seika.SKA_MEM_FREE(file_path);
 
     // Calculate the lengths
     const file_path_len = std.mem.len(file_path);
-    const relative_path_len = relative_path.len;
-    const total_len = file_path_len + relative_path_len;
-
-    if (total_len >= max_buffer_size) {
+    if (file_path_len >= max_buffer_size) {
         return error.BufferTooSmall;
     }
 
     // Copy filePath to buffer
     std.mem.copyForwards(u8, local_buffer[0..file_path_len], file_path[0..file_path_len]);
 
-    // Concatenate relativePath to buffer
-    std.mem.copyForwards(u8, local_buffer[file_path_len..total_len], relative_path);
-
-    return local_buffer[0..total_len];
+    return local_buffer[0..file_path_len];
 }
