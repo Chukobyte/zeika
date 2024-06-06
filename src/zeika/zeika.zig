@@ -39,7 +39,7 @@ pub const Texture = struct {
     }
 
     pub fn initFromMemory(buffer: *anyopaque, buffer_len: usize) Handle {
-        const texture = seika.ska_texture_create_from_memory(buffer, buffer_len);
+        const texture = seika.ska_texture_create_texture_from_memory(buffer, buffer_len);
         return Handle{
             .internal_texture = texture,
         };
