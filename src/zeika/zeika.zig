@@ -6,8 +6,8 @@ pub const math = @import("math.zig");
 pub const event = @import("event.zig");
 
 // Seika
-pub inline fn initAll(window_title: []const u8, window_width: i32, window_height: i32, resolution_width: i32, resolution_height: i32) !void {
-    if (!seika.ska_init_all(&window_title[0], window_width, window_height, resolution_width, resolution_height)) {
+pub inline fn initAll(window_title: [:0]const u8, window_width: i32, window_height: i32, resolution_width: i32, resolution_height: i32) !void {
+    if (!seika.ska_init_all(window_title.ptr, window_width, window_height, resolution_width, resolution_height)) {
         return error.ZeikaInitFailure;
     }
 }
@@ -29,23 +29,31 @@ pub const Texture = struct {
 
     pub const Handle = struct {
         internal_texture: [*c]seika.SkaTexture = undefined,
+
+        pub inline fn deinit(self: *const @This()) void {
+            Texture.deinit(self);
+        }
     };
 
     pub fn initSolidColoredTexture(width: i32, height: i32, color_value: u32) Handle {
-        const texture = seika.ska_texture_create_solid_colored_texture(width, height, color_value);
         return Handle{
-            .internal_texture = texture,
+            .internal_texture = seika.ska_texture_create_solid_colored_texture(width, height, color_value),
         };
     }
 
-    pub fn initFromMemory(buffer: *anyopaque, buffer_len: usize) Handle {
-        const texture = seika.ska_texture_create_texture_from_memory(buffer, buffer_len);
+    pub fn initFromMemory(buffer: *const anyopaque, buffer_len: usize) Handle {
         return Handle{
-            .internal_texture = texture,
+            .internal_texture = seika.ska_texture_create_texture_from_memory(buffer, buffer_len),
         };
     }
 
-    pub fn deinit(texture: Handle) void {
+    pub fn initFromFile(file_path: [:0]const u8) Handle {
+        return Handle{
+            .internal_texture = seika.ska_texture_create_texture(file_path.ptr),
+        };
+    }
+
+    pub fn deinit(texture: *const Handle) void {
         seika.ska_texture_delete(texture.internal_texture);
     }
 };
@@ -58,11 +66,10 @@ pub const Font = struct {
         apply_nearest_neighbor: bool = true,
     };
 
-    pub fn initFromMemory(buffer: *anyopaque, buffer_len: usize, init_params: InitParams) @This() {
-        const new_font = Font{
+    pub fn initFromMemory(buffer: *const anyopaque, buffer_len: usize, init_params: InitParams) @This() {
+        return Font{
             .internal_font = seika.ska_font_create_font_from_memory(buffer, buffer_len, init_params.font_size, init_params.apply_nearest_neighbor)
         };
-        return new_font;
     }
 
     pub fn deinit(self: *const @This()) void {
@@ -109,7 +116,7 @@ pub const Renderer = struct {
     pub fn queueDrawText(draw_config: *const TextDrawQueueConfig) void {
         seika.ska_renderer_queue_font_draw_call(
             draw_config.font.internal_font,
-            &draw_config.text[0],
+            draw_config.text.ptr,
             draw_config.position.x,
             draw_config.position.y,
             draw_config.scale,

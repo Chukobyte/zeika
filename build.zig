@@ -36,13 +36,6 @@ pub fn build(b: *std.Build) !void {
 
     const create_demo: bool = b.option(bool, "create_demo", "Will create a demo executable") orelse false;
 
-    const exe: *std.Build.Step.Compile = b.addExecutable(.{
-        .name = "main",
-        .root_source_file = .{ .path = "src/demo.zig" },
-        .target = target,
-        .optimize = optimize,
-    });
-
     // Dependencies
     const seika_lib: *std.Build.Step.Compile = try add_seika(b, target, optimize);
 
@@ -52,6 +45,13 @@ pub fn build(b: *std.Build) !void {
     zeika_mod.linkLibrary(seika_lib);
 
     if (create_demo) {
+        const exe: *std.Build.Step.Compile = b.addExecutable(.{
+            .name = "demo",
+            .root_source_file = .{ .path = "demo/demo.zig" },
+            .target = target,
+            .optimize = optimize,
+        });
+
         exe.linkLibC();
         exe.root_module.addImport("zeika", zeika_mod);
         exe.linkLibrary(seika_lib);
@@ -322,7 +322,7 @@ fn add_stb_image(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.
     });
 
     stb_image_lib.addIncludePath(.{ .path = stb_image_include_path });
-    stb_image_lib.addCSourceFile(.{ .file = .{ .path = stb_image_dep_path ++ "/stb_image.c" } });
+    stb_image_lib.addCSourceFile(.{ .file = .{ .path = stb_image_dep_path ++ "/stb_image.c" }, .flags = &.{ "-std=c99", "-fno-sanitize=undefined" } });
 
     stb_image_lib.linkLibC();
 
