@@ -1,6 +1,6 @@
 .{
     .name = "zeika",
-    .version = "0.0.15",
+    .version = "0.0.16",
     .minimum_zig_version = "0.13.0", // Version used to build project and deps
     .paths = .{
         "src",

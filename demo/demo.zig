@@ -14,7 +14,7 @@ pub fn main() !void {
     try zeika.initAll("Zig Test", 800, 600, 800, 600);
     defer zeika.shutdownAll();
 
-    const test_font = Font.initFromMemory(@ptrCast(embedded_font.ptr), embedded_font.len, .{ .font_size = 48 });
+    const test_font = Font.initFromMemory( &.{ .buffer = @ptrCast(embedded_font.ptr), .buffer_len =  embedded_font.len,  .font_size = 48 });
     defer test_font.deinit();
 
     const texture_handle = Texture.initSolidColoredTexture(1, 1, 255);
