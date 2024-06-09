@@ -21,9 +21,7 @@ pub fn main() !void {
     defer texture_handle.deinit();
 
     const test_sprite = Texture.initFromMemory(@ptrCast(embedded_sprite.ptr),  embedded_sprite.len);
-    // const test_sprite = Texture.initFromFile("C:/Users/Chukobyte/ProjectWorkspace/zig/zeika/demo/test_sprite.png");
     defer test_sprite.deinit();
-
 
     while (zeika.isRunning()) {
         zeika.update();

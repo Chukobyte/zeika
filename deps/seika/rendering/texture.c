@@ -40,6 +40,8 @@ SkaTexture* ska_texture_create_texture(const char* filePath) {
     return ska_texture_create_texture2(filePath, DEFAULT_TEXTURE_REF.wrapS, DEFAULT_TEXTURE_REF.wrapT, DEFAULT_TEXTURE_REF.applyNearestNeighbor);
 }
 
+static unsigned char* lastReadTextureData = NULL;
+
 SkaTexture* ska_texture_create_texture2(const char* filePath, GLint wrapS, GLint wrapT, bool applyNearestNeighbor) {
     SkaTexture* texture = ska_texture_create_default_texture();
     texture->fileName = ska_strdup(filePath);
@@ -51,7 +53,7 @@ SkaTexture* ska_texture_create_texture2(const char* filePath, GLint wrapS, GLint
     SKA_ASSERT_FMT(fileImageData != NULL, "Failed to load texture image at file path '%s'", filePath);
     const usize imageDataSize = strlen((char*) fileImageData->data);
     texture->data = (unsigned char*) SKA_MEM_ALLOCATE_SIZE(imageDataSize);
-    memcpy(texture->data, fileImageData->data, imageDataSize);
+//    memcpy(texture->data, fileImageData->data, imageDataSize);
     texture->data = fileImageData->data; // TODO: Fix
     texture->width = fileImageData->width;
     texture->height = fileImageData->height;
@@ -60,6 +62,8 @@ SkaTexture* ska_texture_create_texture2(const char* filePath, GLint wrapS, GLint
     ska_texture_generate(texture);
 
     ska_asset_file_loader_free_image_data(fileImageData);
+
+    lastReadTextureData = texture->data;
 
     return texture;
 }
@@ -76,7 +80,8 @@ SkaTexture* ska_texture_create_texture_from_memory2(const void* buffer, usize bu
     texture->data = (unsigned char*) SKA_MEM_ALLOCATE_SIZE(bufferSize);
     unsigned char* imageData = stbi_load_from_memory((unsigned char*)buffer, (int32)bufferSize, &texture->width, &texture->height, &texture->nrChannels, 0);
     SKA_ASSERT(imageData);
-    memcpy(texture->data, imageData, bufferSize);
+//    memcpy(texture->data, imageData, bufferSize);
+    texture->data = imageData;
 
     ska_texture_generate(texture);
 
