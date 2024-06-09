@@ -116,10 +116,10 @@ pub const Rect2u = Rectangle2(u32);
 
 // Color
 pub const Color = struct {
-    r: u8,
-    g: u8,
-    b: u8,
-    a: u8 = 255,
+    r: u32,
+    g: u32,
+    b: u32,
+    a: u32 = 255,
 
     pub const Black = @This(){ .r = 0, .g = 0, .b = 0 };
     pub const White = @This(){ .r = 255, .g = 255, .b = 255 };
