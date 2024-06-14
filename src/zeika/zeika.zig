@@ -103,7 +103,7 @@ pub const Renderer = struct {
 
     pub const TextDrawQueueConfig = struct {
         font: Font,
-        text: []const u8,
+        text: [:0]const u8,
         position: math.Vec2,
         scale: f32 = 1.0,
         color: math.Color = math.Color.White,
